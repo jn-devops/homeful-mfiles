@@ -20,7 +20,7 @@ class MfilesController extends Controller
         //     'VaultGuid' => env('MFILES_VAULTID') // $request->input('vaultid') -- change to Param if multiple vault
         // ];
         $credential = [
-            'Username'  => "rae.admin"
+            'Username'  => "rae.admin",
             'Password'  => "Jng@2024",
             'VaultGuid' => "CAD8D7CC-A4DB-4BC2-96E0-BE2B15A9CEDF" // $request->input('vaultid') -- change to Param if multiple vault
         ];
