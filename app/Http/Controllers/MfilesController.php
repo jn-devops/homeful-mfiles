@@ -13,7 +13,9 @@ class MfilesController extends Controller
     public function get_token()
     {
         //$vaultName = env('MFILES_VAULT_URL').'/REST/'; //$request->input('vault');
-        $authURL = env('MFILES_VAULT_URL').'/REST/'.'server/authenticationtokens';
+        // $authURL = env('MFILES_VAULT_URL').'/REST/'.'server/authenticationtokens';
+        $authURL = 'https://rli-storefront.cloudvault.m-files.com/REST/'.'server/authenticationtokens';
+        
         // $credential = [
         //     'Username'  => env("MFILES_ADMIN_USER"),
         //     'Password'  => env("MFILES_ADMIN_PASS"),
@@ -49,61 +51,87 @@ class MfilesController extends Controller
     }
     public function create_object(Request $request){
         $get_token = $this->get_token();
-        $properties = $request->Properties;
-        $setProperties;
-        //set document properties
-        if($properties){
-            foreach ($properties as $property) 
-            {   
-                $currProperty = [
-                    "PropertyDef" => $property['ID'],
-                    "TypedValue" => [
-                        "DataType" => 1,
-                        "Value" => $property['Value']
-                    ]
-                ];
-                $setProperties[] = $currProperty;
-            }
-        }
-        //set if document accept multiple files
-        $setProperties[] = [
-            "PropertyDef" => 22,
-            "TypedValue" => [
-                "DataType" => 8,
-                "Value" => $request->multipleFile
-            ]
-        ]; 
-        //set document class
-        $setProperties[] = [
-            "PropertyDef" => 100,
-            "TypedValue" => [
-                "DataType" => 9,
-                "Lookup"=>[
-                    "Item" => $request->classId,
-                    "Version" => -1
-                ]
-            ]
-        ]; 
-
-        $client = new Client();
-        $headers = [
-        'x-authentication' => $get_token['token'],
-        'Content-Type' => 'application/json',
-        'Cookie' => $get_token['setCookie']
-        ];
+        // $properties = $request->Properties;
+        // $setProperties;
+        // //set document properties
+        // if($properties){
+        //     foreach ($properties as $property) 
+        //     {   
+        //         $currProperty = [
+        //             "PropertyDef" => $property['ID'],
+        //             "TypedValue" => [
+        //                 "DataType" => 1,
+        //                 "Value" => $property['Value']
+        //             ]
+        //         ];
+        //         $setProperties[] = $currProperty;
+        //     }
+        // }
+        // //set if document accept multiple files
+        // $setProperties[] = [
+        //     "PropertyDef" => 22,
+        //     "TypedValue" => [
+        //         "DataType" => 8,
+        //         "Value" => $request->multipleFile
+        //     ]
+        // ]; 
+        // //set document class
+        // $setProperties[] = [
+        //     "PropertyDef" => 100,
+        //     "TypedValue" => [
+        //         "DataType" => 9,
+        //         "Lookup"=>[
+        //             "Item" => $request->classId,
+        //             "Version" => -1
+        //         ]
+        //     ]
+        // ]; 
+        // $body = '{"PropertyValues":'.json_encode($setProperties).',"Files": []}';
+        // // dd($body);
+        // $client = new Client();
+        // $headers = [
+        // 'x-authentication' => $get_token['token'],
+        // 'Content-Type' => 'application/json',
+        // 'Cookie' => $get_token['setCookie']
+        // ];
         
-        $body = '{"PropertyValues":'.json_encode($setProperties).',"Files": []}';
-        // dd($body);
-        try{
-            $response = $client->post(env('MFILES_VAULT_URL').'/REST/objects/'.$request->input('objectID').'?checkIn=true', [
-                'json' => $body,
+        $client = new Client();
+        // // dd($body);
+        $objectURL ="https://rli-storefront.cloudvault.m-files.com/REST/objects/".$request->input('objectID')."?checkIn=true" ;
+        try {
+            $response = $client->post($objectURL,[
+                'json' => '',//$credential ,
                 'headers' => [
-                    'x-authentication' => $get_token['token'],
                     'Content-Type' => 'application/json',
+                    'x-authentication' => $get_token['token'],
                     'Cookie' => $get_token['setCookie']
                 ],
             ]);
-            return json_decode($res->getBody()->getContents()); 
+
+            $setCookies = null;
+            $setCookie = $response->getHeader('Set-Cookie');
+            if($setCookie){
+                foreach ($setCookie as $cookie) {
+                    $array = explode(';',$cookie);
+                    $setCookies = $setCookies == NULL ? $array[0] : $setCookies.";".$array[0];
+                }
+            }
+            $response_message = json_decode($response->getBody()->getContents()); 
+            return ["token"=>$response_message->Value, "setCookie" => $setCookies];
+        } catch (\Exception $e) {
+            return response()->json(['error' =>  $e->getMessage()], 500);
+        }
+
+        try{
+        //     $response = $client->post(', [
+        //         'body' => $body,
+        //         'headers' => [
+        //            // 'x-authentication' => $get_token['token'],
+        //             'Content-Type' => 'application/json',
+        //             'Cookie' => $get_token['setCookie']
+        //         ],
+        //     ]);
+        //     return json_decode($res->getBody()->getContents()); 
         }
         catch (\Exception $e) {
         return response()->json(['error' => 'Error creating document: ' . $e->getMessage()], 500);
