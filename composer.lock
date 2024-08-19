@@ -1052,16 +1052,16 @@
         },
         {
             "name": "jn-devops/paymate",
-            "version": "v1.1.2",
+            "version": "v1.1.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jn-devops/paymate.git",
-                "reference": "622b0efde0a6a7f237f334fbebf0a56b2f16e772"
+                "reference": "8fda2780a8876f82a67e480b876d54fe98aaa4bd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jn-devops/paymate/zipball/622b0efde0a6a7f237f334fbebf0a56b2f16e772",
-                "reference": "622b0efde0a6a7f237f334fbebf0a56b2f16e772",
+                "url": "https://api.github.com/repos/jn-devops/paymate/zipball/8fda2780a8876f82a67e480b876d54fe98aaa4bd",
+                "reference": "8fda2780a8876f82a67e480b876d54fe98aaa4bd",
                 "shasum": ""
             },
             "require": {
@@ -1121,7 +1121,7 @@
             ],
             "support": {
                 "issues": "https://github.com/jn-devops/paymate/issues",
-                "source": "https://github.com/jn-devops/paymate/tree/v1.1.2"
+                "source": "https://github.com/jn-devops/paymate/tree/v1.1.3"
             },
             "funding": [
                 {
@@ -1129,7 +1129,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-08-19T03:32:37+00:00"
+            "time": "2024-08-19T06:10:10+00:00"
         },
         {
             "name": "laravel/framework",
