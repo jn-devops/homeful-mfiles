@@ -45,7 +45,7 @@ class MfilesController extends Controller
                 'Timestamp' => 7,
             ];
             $datatype = $array['DataType'] ?? null;
-            
+            echo $array;
             switch ($array['DataType']) {
                 case 'MultiLookup':
                     $property = [
@@ -86,10 +86,10 @@ class MfilesController extends Controller
 
     }
     private function baseURL(){
-        return env("MFILES_BASEURL");
+        return env("MFILES_BASEURL","https://raemulanlands.cloudvault.m-files.com");
     }
     public function user_information(){
-        $get_token = $this->get_token();
+        $get_token = $this->get_token($request);
         $sessionURL =$this->baseURL()."/REST/session" ;
         // Get the uploaded file from the request
         $headers = [
@@ -110,13 +110,15 @@ class MfilesController extends Controller
          }
         return $response_content;
     }
-    public function get_token()
+    public function get_token(Request $request)
     {
         $authURL = $this->baseURL().'/REST/server/authenticationtokens';
+        $username = !$request->Credentials?env("MFILES_ADMIN_USER"):$request->Credentials['Username'];
+        $password = !$request->Credentials?env("MFILES_ADMIN_PASS"):$request->Credentials['Password'];
         $credential = [
-            'Username'  => env("MFILES_ADMIN_USER"),
-            'Password'  => env("MFILES_ADMIN_PASS"),
-            'VaultGuid' => env('MFILES_VAULTID') // $request->input('vaultid') -- change to Param if multiple vault
+            'Username'  => $username,
+            'Password'  => $password,
+            'VaultGuid' => env('MFILES_VAULTID',"DF00F177-C725-4EB7-AC98-A557D1245361") // $request->input('vaultid') -- change to Param if multiple vault
         ];
 
         $client = new Client();
@@ -145,7 +147,7 @@ class MfilesController extends Controller
     }
     
     public function create_object(Request $request){
-        $get_token = $this->get_token();
+        $get_token = $this->get_token($request);
         $properties = $request->Properties;
         $setProperties;
         //set document properties
@@ -179,7 +181,6 @@ class MfilesController extends Controller
             ]
         ];
         $body = '{"PropertyValues":'.json_encode($setProperties).',"Files": []}';
-        dd($body);
         $bodyJson = [
             "PropertyValues" => $setProperties,
             "Files" => [] ];
@@ -197,14 +198,128 @@ class MfilesController extends Controller
         // dd($objectURL);
         $request = new GuzzleRequest('POST', $objectURL, $headers, $body);
         $res = $client->sendAsync($request)->wait();
-        $responseBody = $res->getBody()->getContents();
-        dd($responseBody);
-        return $res->getBody();        
+        $responseBody = json_decode($res->getBody());//->getContents();
+        // dd($responseJSON);
+        // return $responseJSON->DisplayID;     
+        // return $res->getBody();        
+        return $responseBody;
 
     }
     
+    public function upload_file_url(Request $request){
+
+        if (file_exists(storage_path($request->filePath))) {
+            $filePath = storage_path($request->filePath);
+        }
+        else
+        { 
+        return "File not found.";    
+        }
+        $classId = (int)$request->classID;
+        $client = new Client();
+        $objectURL =$this->baseURL()."/REST/files" ;
+        $bodyFile = Utils::streamFor(fopen($filePath, 'r'));
+        // dd( $request->filename );
+        $get_token = $this->get_token($request);
+        $fileName = $request->filename;
+        $referenceCode = $request->referenceCode;
+        $ext = $request->ext;
+        
+        $headers = [
+            'x-authentication' => $get_token['token'],
+            'Content-Type' => 'application/json',
+            'Cookie' => $get_token['setCookie']
+            ];
+        $request = new GuzzleRequest('POST', $objectURL, $headers, $bodyFile);
+        $response = $client->sendAsync($request)->wait();
+        $response_content = json_decode($response->getBody()->getContents());
+        $upload_response = [
+            "UploadID" => $response_content->UploadID,
+            "Size" => $response_content->Size ,
+            "Title" => $fileName,
+            "Extension" => $ext
+        ];
+
+        //create object 
+        // $properties = $request->Properties;
+        // $setProperties;
+        //Set document properties
+        $properties = $request->Properties;
+        $setProperties;
+        //set document properties
+        if($properties)
+        {
+            foreach ($properties as $property) 
+            {   
+                $currProperty = $this->process_property($property);                
+                $setProperties[] = $currProperty;        
+            }
+        }
+        // $setProperties[] =  [
+        //     "PropertyDef" => 1068,
+        //     "TypedValue" => [
+        //         "DataType" => 1,
+        //         "Value" => $fileName
+        //     ]
+        // ];
+        // $setProperties[] =  [
+        //     "PropertyDef" => 1115,
+        //     "TypedValue" => [
+        //         "DataType" => 1,
+        //         "Value" => $referenceCode
+        //     ]
+        // ];
+        //Set if document accept multiple files
+        $setProperties[] = [
+            "PropertyDef" => 22,
+            "TypedValue" => [
+                "DataType" => 8,
+                "Value" => true
+            ]
+        ]; 
+
+        //Set document class
+        $setProperties[] = [
+            "PropertyDef" => 100,
+            "TypedValue" => [
+                "DataType" => 9,
+                "Lookup"=>[
+                    "Item" => $classId,
+                    "Version" => -1
+                ]
+            ]
+        ];
+        $body = '{"PropertyValues":'.json_encode($setProperties).',"Files": ['.json_encode($upload_response).']}';
+        $bodyJson = [
+            "PropertyValues" => $setProperties,
+            "Files" => $upload_response ];
+
+        dd($body);
+        // dd($get_token);
+        $client = new Client();
+        $headers = [
+        'x-authentication' => $get_token['token'],
+        'Content-Type' => 'application/json',
+        'Cookie' => $get_token['setCookie']
+        ];
+        // dd($headers);
+
+ 
+        try{
+            $objectURL =$this->baseURL()."/REST/objects/".$request->objectID."?checkIn=true" ;
+            $request = new GuzzleRequest('POST', $objectURL, $headers, $body);
+            $res = $client->sendAsync($request)->wait();
+            $responseBody = $res->getBody()->getContents();
+            dd($responseBody);
+        } catch (\Exception $e) {
+        dd($e->getResponse()->getBody()->getContents());
+        return response()->json(['error' => 'Error in generating Token: ' . $e->getMessage()], 500);
+         }
+        return $res->getBody();    
+       
+    }
     public function upload_file(Request $request){
-        $get_token = $this->get_token();
+        $get_token = $this->get_token($request);
         $fileName = $request->upload->getClientOriginalName();
         $ext = $request->upload->getClientOriginalExtension();
         $classId = (int)$request->classID;
@@ -215,6 +330,9 @@ class MfilesController extends Controller
         $uploadFile = $request->file('upload');
         $bodyFile = Utils::streamFor(fopen($uploadFile->getPathname(), 'r'));
         // dd($bodyFile);
+
+
+        
         $headers = [
             'x-authentication' => $get_token['token'],
             'Content-Type' => 'application/json',
@@ -297,7 +415,7 @@ class MfilesController extends Controller
     }
     public function get_document_property(Request $request){
     
-        $get_token = $this->get_token();
+        $get_token = $this->get_token($request);
         $objectURL =$this->baseURL()."/REST/objects/".$request->objectID."?p".$request->propertyID."=".$request->name ;
         $client = new Client();
         $headers = [
@@ -325,7 +443,7 @@ class MfilesController extends Controller
     }
     
     public function get_value_list($ID){
-        $get_token = $this->get_token();
+        $get_token = $this->get_token($request);
         $client = new Client();
         $headers = [
         'x-authentication' => $get_token['token'],
@@ -343,7 +461,7 @@ class MfilesController extends Controller
         return $responseBody;
     }
     public function download_file(Request $request){
-        $get_token = $this->get_token();
+        $get_token = $this->get_token($request);
         $properties = $request->Properties;
         $setProperties;
         //set document properties
@@ -402,13 +520,12 @@ class MfilesController extends Controller
         $request = new GuzzleRequest('POST', $objectURL, $headers, $body);
         $res = $client->sendAsync($request)->wait();
         $responseBody = $res->getBody()->getContents();
-        dd($responseBody);
-        return $res->getBody();        
+        return $responseBody;
 
     }
     public function get_object(Request $request){
 
-        $get_token = $this->get_token();
+        $get_token = $this->get_token($request);
         $objectURL =$this->baseURL()."/REST/objects/".$request->objectID."?p".$request->propertyID."=".$request->name ;
         $client = new Client();
         $headers = [

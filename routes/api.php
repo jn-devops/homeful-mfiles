@@ -17,6 +17,8 @@ Route::get ('mfiles/lists/{ID}'     ,  [MfilesController::class, 'get_value_list
 // Route::post('mfiles/login',  [MfilesController::class, 'create_object']   )->name('create document');
 Route::post('mfiles/document/create',  [MfilesController::class, 'create_object']   )->name('create document');
 Route::post('mfiles/file/upload'    ,  [MfilesController::class, 'upload_file']     )->name('upload file');
+Route::post('mfiles/file/upload/storage'    ,  [MfilesController::class, 'upload_file_url']     )->name('upload file');
+
 Route::post('mfiles/document/search',  [MfilesController::class, 'get_object']   )->name('search document');
 Route::post('mfiles/document/search/properties',  [MfilesController::class, 'get_document_property']   )->name('search document');
 
