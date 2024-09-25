@@ -214,7 +214,7 @@ class MfilesController extends Controller
         }
         else
         { 
-        return "File not found.";    
+        return "File not found in ".storage_path($request->filePath);    
         }
         $classId = (int)$request->classID;
         $objId = $request->objectId;
