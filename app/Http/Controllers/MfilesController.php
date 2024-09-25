@@ -209,12 +209,20 @@ class MfilesController extends Controller
     public function upload_file_url(Request $request){
                 //Set document properties
         $properties = $request->Properties;
-        if (file_exists(storage_path($request->filePath))) {
-            $filePath = storage_path($request->filePath);
+        // if (file_exists(storage_path($request->filePath))) {
+        //     $filePath = storage_path($request->filePath);
+        // }
+        // else
+        // { 
+        // return "File not found in ".storage_path($request->filePath);    
+        // }
+
+        if (file_exists($request->filePath)) {
+            $filePath = $request->filePath;
         }
         else
         { 
-        return "File not found in ".storage_path($request->filePath);    
+        return "File not found in ".$request->filePath;    
         }
         $classId = (int)$request->classID;
         $objId = $request->objectId;
