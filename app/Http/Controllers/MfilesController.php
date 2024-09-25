@@ -45,7 +45,7 @@ class MfilesController extends Controller
                 'Timestamp' => 7,
             ];
             $datatype = $array['DataType'] ?? null;
-            echo $array;
+
             switch ($array['DataType']) {
                 case 'MultiLookup':
                     $property = [
@@ -207,7 +207,8 @@ class MfilesController extends Controller
     }
     
     public function upload_file_url(Request $request){
-
+                //Set document properties
+        $properties = $request->Properties;
         if (file_exists(storage_path($request->filePath))) {
             $filePath = storage_path($request->filePath);
         }
@@ -216,6 +217,7 @@ class MfilesController extends Controller
         return "File not found.";    
         }
         $classId = (int)$request->classID;
+        $objId = $request->objectId;
         $client = new Client();
         $objectURL =$this->baseURL()."/REST/files" ;
         $bodyFile = Utils::streamFor(fopen($filePath, 'r'));
@@ -239,14 +241,10 @@ class MfilesController extends Controller
             "Title" => $fileName,
             "Extension" => $ext
         ];
-
+        // dd($upload_response);
         //create object 
-        // $properties = $request->Properties;
-        // $setProperties;
-        //Set document properties
-        $properties = $request->Properties;
         $setProperties;
-        //set document properties
+        // dd($properties);
         if($properties)
         {
             foreach ($properties as $property) 
@@ -274,7 +272,7 @@ class MfilesController extends Controller
             "PropertyDef" => 22,
             "TypedValue" => [
                 "DataType" => 8,
-                "Value" => true
+                "Value" => false
             ]
         ]; 
 
@@ -289,13 +287,14 @@ class MfilesController extends Controller
                 ]
             ]
         ];
+        // dd($setProperties);
         $body = '{"PropertyValues":'.json_encode($setProperties).',"Files": ['.json_encode($upload_response).']}';
         $bodyJson = [
             "PropertyValues" => $setProperties,
             "Files" => $upload_response ];
 
-        dd($body);
-        // dd($get_token);
+     
+        // dd($bodyJson);
         $client = new Client();
         $headers = [
         'x-authentication' => $get_token['token'],
@@ -306,14 +305,14 @@ class MfilesController extends Controller
 
  
         try{
-            $objectURL =$this->baseURL()."/REST/objects/".$request->objectID."?checkIn=true" ;
+            $objectURL =$this->baseURL()."/REST/objects/".$objId."?checkIn=true" ;
             $request = new GuzzleRequest('POST', $objectURL, $headers, $body);
             $res = $client->sendAsync($request)->wait();
             $responseBody = $res->getBody()->getContents();
             dd($responseBody);
         } catch (\Exception $e) {
         dd($e->getResponse()->getBody()->getContents());
-        return response()->json(['error' => 'Error in generating Token: ' . $e->getMessage()], 500);
+        return response()->json(['error' => 'Error in uploading file: ' . $e->getMessage()], 500);
          }
         return $res->getBody();    
        
@@ -350,8 +349,6 @@ class MfilesController extends Controller
         ];
 
         //create object 
-        // $properties = $request->Properties;
-        // $setProperties;
         //Set document properties
         $setProperties[] =  [
             "PropertyDef" => 1157,
