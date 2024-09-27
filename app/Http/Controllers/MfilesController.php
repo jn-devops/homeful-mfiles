@@ -29,6 +29,9 @@ class MfilesController extends Controller
     return $datatypes[$value] ?? null;
     
     }
+    public function request_catcher(Request $request){
+        dd($request);
+    }
     public function process_property($array){   
             $datatypes = [
                 'Boolean' => 8,
@@ -208,6 +211,7 @@ class MfilesController extends Controller
     
     public function upload_file_url(Request $request){
         //Set document properties
+        dd($request->body);
         $properties = $request->Properties;
         // if (file_exists(storage_path($request->filePath))) {
         //     $filePath = storage_path($request->filePath);

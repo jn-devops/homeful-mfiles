@@ -25,3 +25,4 @@ Route::post('mfiles/document/search/properties',  [MfilesController::class, 'get
 Route::post('mfiles/file/download'  ,  [MfilesController::class, 'download_file'] )->name('download file');
 Route::post('mfiles/document/upload',  [MfilesController::class, 'upload_document'] )->name('upload document');
 Route::post('mfiles/document/get'   ,  [MfilesController::class, 'read_document'] )->name('read document');
+Route::post('mfiles/debug/request'  ,  [MfilesController::class, 'request_catcher'] )->name('debugger');
