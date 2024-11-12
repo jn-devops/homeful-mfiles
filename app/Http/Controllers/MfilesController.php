@@ -412,7 +412,7 @@ class MfilesController extends Controller
             $responseBody = $res->getBody()->getContents();
             dd($responseBody);
         } catch (\Exception $e) {
-        dd($e->getResponse()->getBody()->getContents());
+        // dd($e->getResponse()->getBody()->getContents());
         return response()->json(['error' => 'Error in generating Token: ' . $e->getMessage()], 500);
          }
         return $res->getBody();    
@@ -422,10 +422,12 @@ class MfilesController extends Controller
         // return $res->getBody();
        
     }
-    public function get_document_property(Request $request){
-    
+    public function get_document_property(Request $request, $ObjectID = null, $propertyID = null){
+        $objectID = $objectID ?? $request->objectID;
+        $propertyID = $propertyID ?? $request->propertyID;
+
         $get_token = $this->get_token($request);
-        $objectURL =$this->baseURL()."/REST/objects/".$request->objectID."?p".$request->propertyID."=".$request->name ;
+        $objectURL =$this->baseURL()."/REST/objects/".$objectID."?p".$propertyID."=".$request->name ;
         $client = new Client();
         $headers = [
         'x-authentication' => $get_token['token'],
@@ -441,7 +443,7 @@ class MfilesController extends Controller
             $objID = $res->Items[0]->DisplayID;
             foreach ($request->property_ids as $prop_id){ 
                 $prop_def = $this->get_property_definition($headers,$prop_id);
-                $prop_value = $this->get_property_value($headers,$request->objectID."/".$objID."/latest/properties/".$prop_id);
+                $prop_value = $this->get_property_value($headers,$objectID."/".$objID."/latest/properties/".$prop_id);
                 $result[$prop_def['name']] = $prop_value ;
                
             }
@@ -451,7 +453,77 @@ class MfilesController extends Controller
     }
     }
     
-    public function get_value_list($ID){
+    public function update_inventory_status(Request $request, $property_unit = null, $status = null){
+        $objectID = 119; //unit inventory
+        $propertyID = 1109; //os status
+        $get_token = $this->get_token($request);
+            $objectURL =$this->baseURL()."/REST/objects/".$objectID."?p1105=".$property_unit ;
+            $client = new Client();
+            $headers = [
+            'x-authentication' => $get_token['token'],
+            'Content-Type' => 'application/json',
+            'Cookie' => $get_token['setCookie']
+            ];
+            try{
+                $requestObj = new GuzzleRequest('GET', $objectURL, $headers);
+                $res = $client->sendAsync($requestObj)->wait();
+                $responseBody = $res->getBody()->getContents();
+                $res = json_decode($responseBody);
+                $objID = $res->Items[0]->DisplayID;
+
+                $setProperties[] = [
+
+                    "PropertyDef" => $propertyID,
+                    "TypedValue" => [
+                        "DataType" => 10,
+                        "Lookups"=> [
+                            [
+                                "Item" => $status,
+                                "Version" => -1
+                            ]
+                        ]
+                    ]
+                ];
+                $body = json_encode($setProperties);
+                 // dd($body);
+                $objectURL =$this->baseURL()."/REST/objects/".$objectID."/".$objID."/latest/properties";
+                // dd($objectURL);
+                $request = new GuzzleRequest('POST', $objectURL, $headers, $body);
+                $res = $client->sendAsync($request)->wait();
+                $responseBody = $res->getBody()->getContents();
+                return $responseBody;
+
+            } catch (\Exception $e) {
+            return response()->json(['error' => 'Error in searching object: ' . $e->getMessage()], 500);
+        }
+        $get_token = $this->get_token($request);
+        $objectURL =$this->baseURL()."/REST/objects/".$objectID."?p".$propertyID."=".$request->name ;
+        $client = new Client();
+        $headers = [
+        'x-authentication' => $get_token['token'],
+        'Content-Type' => 'application/json',
+        'Cookie' => $get_token['setCookie']
+        ];
+        // dd($headers);
+        try{
+            $requestObj = new GuzzleRequest('GET', $objectURL, $headers);
+            $res = $client->sendAsync($requestObj)->wait();
+            $responseBody = $res->getBody()->getContents();
+            $res = json_decode($responseBody);
+            $objID = $res->Items[0]->DisplayID;
+            foreach ($request->property_ids as $prop_id){ 
+                $prop_def = $this->get_property_definition($headers,$prop_id);
+                $prop_value = $this->get_property_value($headers,$objectID."/".$objID."/latest/properties/".$prop_id);
+                $result[$prop_def['name']] = $prop_value ;
+               
+            }
+            return $result;
+        } catch (\Exception $e) {
+        return response()->json(['error' => 'Error in searching object: ' . $e->getMessage()], 500);
+    }
+    }
+    public function get_value_list(Request $request, $ID){
+
         $get_token = $this->get_token($request);
         $client = new Client();
         $headers = [
