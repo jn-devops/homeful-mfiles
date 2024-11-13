@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Storage;
 
 class MfilesController extends Controller
 {   
+    private function baseURL(){
+        return env("MFILES_BASEURL","https://raemulanlands.cloudvault.m-files.com");
+    }
     public function get_datatype($value)
     {
     $datatypes = [
@@ -88,9 +91,7 @@ class MfilesController extends Controller
         return $property;
 
     }
-    private function baseURL(){
-        return env("MFILES_BASEURL","https://raemulanlands.cloudvault.m-files.com");
-    }
+
     public function user_information(){
         $get_token = $this->get_token($request);
         $sessionURL =$this->baseURL()."/REST/session" ;
@@ -440,6 +441,9 @@ class MfilesController extends Controller
             $res = $client->sendAsync($requestObj)->wait();
             $responseBody = $res->getBody()->getContents();
             $res = json_decode($responseBody);
+            if(count($res->Items) == 0){
+                return response()->json(['error' => 'Object not found'], 404);
+            }
             $objID = $res->Items[0]->DisplayID;
             foreach ($request->property_ids as $prop_id){ 
                 $prop_def = $this->get_property_definition($headers,$prop_id);
@@ -469,6 +473,9 @@ class MfilesController extends Controller
                 $res = $client->sendAsync($requestObj)->wait();
                 $responseBody = $res->getBody()->getContents();
                 $res = json_decode($responseBody);
+                if(count($res->Items) == 0){
+                return response()->json(['error' => 'Object not found'], 404);
+                }
                 $objID = $res->Items[0]->DisplayID;
 
                 $setProperties[] = [
