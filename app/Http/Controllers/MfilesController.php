@@ -451,9 +451,43 @@ class MfilesController extends Controller
                 $result[$prop_def['name']] = $prop_value ;
                
             }
-            return $result;
+            // return $result;
+             return response()->json($result);
         } catch (\Exception $e) {
-        return response()->json(['error' => 'Error in searching object: ' . $e->getMessage()], 500);
+        return response()->json(['error' => 'Error in searching object: ' . $e->getMessage()], 404);
+    }
+    }
+     public function get_document_property_single(Request $request, $ObjectID = null, $propertyID = null, $propertyValue = null, $getPropertyID = null){
+
+        $get_token = $this->get_token($request);
+        $objectURL =$this->baseURL()."/REST/objects/".$ObjectID."?p".$propertyID."=".$propertyValue ;
+        $client = new Client();
+        $headers = [
+        'x-authentication' => $get_token['token'],
+        'Content-Type' => 'application/json',
+        'Cookie' => $get_token['setCookie']
+        ];
+        // dd($headers);
+        try{
+            $requestObj = new GuzzleRequest('GET', $objectURL, $headers);
+            $res = $client->sendAsync($requestObj)->wait();
+            $responseBody = $res->getBody()->getContents();
+            $res = json_decode($responseBody);
+            if(count($res->Items) == 0){
+                return response()->json(['error' => 'Object not found'], 404);
+            }
+            $objID = $res->Items[0]->DisplayID;
+            $prop_def = $this->get_property_definition($headers,$getPropertyID);
+            $prop_value = $this->get_property_value($headers,$ObjectID."/".$objID."/latest/properties/".$getPropertyID);
+            if($prop_value == null){
+                 return response()->json(['error' => 'property value is empty'], 404);
+            }
+
+            $result[$prop_def['name']] = $prop_value ;
+            // return $result;
+             return response()->json($prop_value);
+        } catch (\Exception $e) {
+        return response()->json(['error' => 'Error in searching object: ' . $e->getMessage()], 404);
     }
     }
     
@@ -474,7 +508,7 @@ class MfilesController extends Controller
                 $responseBody = $res->getBody()->getContents();
                 $res = json_decode($responseBody);
                 if(count($res->Items) == 0){
-                return response()->json(['error' => 'Object not found'], 404);
+                return response()->json(['error' => 'Object not found'], 404)->setStatusCode(404);
                 }
                 $objID = $res->Items[0]->DisplayID;
 

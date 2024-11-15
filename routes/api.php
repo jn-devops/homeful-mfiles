@@ -29,6 +29,7 @@ Route::post('mfiles/debug/request'  ,  [MfilesController::class, 'request_catche
 
 //quick links
 Route::post('mfiles/document/search/properties/{objectID}/{propertyID}',  [MfilesController::class, 'get_document_property']   )->name('search document');
+Route::get('mfiles/document/search/properties/{objectID}/{propertyID}/{propertyValue}/{getPropertyID}',  [MfilesController::class, 'get_document_property_single']   )->name('search document');
 Route::get('mfiles/inventory/update/{property_unit}/{status}',  [MfilesController::class, 'update_inventory_status']   )->name('inventory update');
 Route::get('mfiles/document/search/list/contract',  [MfilesController::class, 'get_contract_list']   )->name('Contract List');
 Route::get('mfiles/document/search/list/property',  [MfilesController::class, 'get_inventory_list']   )->name('Inventory List');
