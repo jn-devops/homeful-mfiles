@@ -696,5 +696,39 @@ class MfilesController extends Controller
         return response()->json(['error' => 'Error in getting property value: ' . $e->getMessage()], 500);
         }
     }
-    
+    public function get_technical_description(Request $request, $propertyValue = null){
+        $get_token = $this->get_token($request);
+        $objectURL =$this->baseURL()."/REST/objects/119?p1105=".$propertyValue ;
+        $client = new Client();
+        $headers = [
+        'x-authentication' => $get_token['token'],
+        'Content-Type' => 'application/json',
+        'Cookie' => $get_token['setCookie']
+        ];
+        // dd($headers);
+        try{
+            $requestObj = new GuzzleRequest('GET', $objectURL, $headers);
+            $res = $client->sendAsync($requestObj)->wait();
+            $responseBody = $res->getBody()->getContents();
+            $res = json_decode($responseBody);
+            if(count($res->Items) == 0){
+                return response()->json(['error' => 'Object not found'], 404);
+            }
+            $objID = $res->Items[0]->DisplayID;
+            $prop_def = $this->get_property_definition($headers,'1285');
+            $prop_value = $this->get_property_value($headers,"119/".$objID."/latest/properties/1285");
+            if($prop_value == null){
+                 return response()->json(['error' => 'property value is empty'], 404);
+            }
+            $short_start = explode('Bounded on the', $prop_value);
+            $short_end = explode('to the point of beginning', $prop_value);
+            $short_str = ($short_start[0] ." Bounded on the xxxxx to the point of beginning".$short_end[1]);
+ 
+            // $result[$prop_def['name']] = trim($short_str) ;
+            // return $result;
+             return response()->json(trim($short_str));
+        } catch (\Exception $e) {
+        return response()->json(['error' => 'Error in searching object: ' . $e->getMessage()], 404);
+    }
+    }
 }

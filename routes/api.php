@@ -30,7 +30,13 @@ Route::post('mfiles/debug/request'  ,  [MfilesController::class, 'request_catche
 //quick links
 Route::post('mfiles/document/search/properties/{objectID}/{propertyID}',  [MfilesController::class, 'get_document_property']   )->name('search document');
 Route::get('mfiles/document/search/properties/{objectID}/{propertyID}/{propertyValue}/{getPropertyID}',  [MfilesController::class, 'get_document_property_single']   )->name('search document');
+Route::get('mfiles/document/view/{objectID}/{documentID}',  [MfilesController::class, 'get_document_view']   )->name('view document');
+Route::get('mfiles/document/download/{objectID}/{documentID}',  [MfilesController::class, 'get_document_download']   )->name('view document');
+
 Route::get('mfiles/inventory/update/{property_unit}/{status}',  [MfilesController::class, 'update_inventory_status']   )->name('inventory update');
-Route::get('mfiles/document/search/list/contract',  [MfilesController::class, 'get_contract_list']   )->name('Contract List');
-Route::get('mfiles/document/search/list/property',  [MfilesController::class, 'get_inventory_list']   )->name('Inventory List');
+Route::get('mfiles/document/search/list/contract/{status}',  [MfilesController::class, 'get_contract_list']   )->name('Contract List');
+Route::get('mfiles/document/search/list/property/{project_code}/{status}',  [MfilesController::class, 'get_inventory_list']   )->name('Inventory List');
 Route::get('mfiles/document/search/list/document/{contract_id}',  [MfilesController::class, 'get_contract_document']   )->name('Document List');
+
+//custom link
+Route::get('mfiles/technical-description/{propertyValue}',  [MfilesController::class, 'get_technical_description']   )->name('technical description');
