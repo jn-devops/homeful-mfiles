@@ -448,6 +448,12 @@ class MfilesController extends Controller
             foreach ($request->property_ids as $prop_id){ 
                 $prop_def = $this->get_property_definition($headers,$prop_id);
                 $prop_value = $this->get_property_value($headers,$objectID."/".$objID."/latest/properties/".$prop_id);
+                if($prop_id = 1285){
+                $short_start = explode('Bounded on the', $prop_value);
+                $short_end = explode('to the point of beginning', $prop_value);
+                 $prop_value = ($short_start[0] ." Bounded on the xxxxx to the point of beginning".$short_end[1]);
+                }
+
                 $result[$prop_def['name']] = $prop_value ;
                
             }
