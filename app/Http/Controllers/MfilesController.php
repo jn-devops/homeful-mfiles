@@ -487,7 +487,7 @@ class MfilesController extends Controller
                 }
                 $objID = $res->Items[0]->DisplayID;
                 foreach ($document['property_ids'] as $index =>$prop_id){ 
-                    if($document['mask_field'][$index]){
+                    if(isset($document['mask_field'])&& $document['mask_field'][$index]){
                         $prop_def['name'] = $document['mask_field'][$index];
                     }
                     else{
