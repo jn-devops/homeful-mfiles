@@ -486,9 +486,13 @@ class MfilesController extends Controller
                     return response()->json(['error' => 'Object not found'], 404);
                 }
                 $objID = $res->Items[0]->DisplayID;
-                foreach ($document['property_ids'] as $prop_id){ 
-
-                    $prop_def = $this->get_property_definition($headers,$prop_id);
+                foreach ($document['property_ids'] as $index =>$prop_id){ 
+                    if($document['mask_field'][$index]){
+                        $prop_def['name'] = $document['mask_field'][$index];
+                    }
+                    else{
+                        $prop_def = $this->get_property_definition($headers,$prop_id);
+                    }
                     $prop_value = $this->get_property_value($headers,$document['objectID']."/".$objID."/latest/properties/".$prop_id);
                     if($prop_id == '1285'){
                     $short_start = explode('Bounded on the', $prop_value);
