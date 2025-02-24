@@ -500,7 +500,8 @@ class MfilesController extends Controller
                    
                 }
                 // dd($result);
-                $results[$document['json_name']?$document['json_name']:'']= $result;
+                $json_name = $document['objectID']===119?"inventory":"project";
+                $results[$document['json_name']?$document['json_name']:$json_name] = $result;
                 
                 //  return response()->json($result);
                 // $results[]= response()->json($result);
