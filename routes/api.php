@@ -21,6 +21,7 @@ Route::post('mfiles/file/upload/storage'    ,  [MfilesController::class, 'upload
 
 Route::post('mfiles/document/search',  [MfilesController::class, 'get_object']   )->name('search document');
 Route::post('mfiles/document/search/properties',  [MfilesController::class, 'get_document_property']   )->name('search document');
+Route::post('mfiles/document/search/properties-many',  [MfilesController::class, 'get_document_property_multi']   )->name('search document');
 
 Route::post('mfiles/file/download'  ,  [MfilesController::class, 'download_file'] )->name('download file');
 Route::post('mfiles/document/upload',  [MfilesController::class, 'upload_document'] )->name('upload document');
