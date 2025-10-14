@@ -450,7 +450,7 @@ class MfilesController extends Controller
                 $prop_value = $this->get_property_value($headers,$objectID."/".$objID."/latest/properties/".$prop_id);
                 if($prop_id == 1285){
                 $short_start = explode('Bounded on the', $prop_value);
-                $short_end = explode('to the point of beginning', $prop_value);
+                $short_end = explode('point of beginning', $prop_value);
                 $prop_value = ($short_start[0] ." Bounded on the XXXX to the point of beginning".$short_end[1]);
                 }
 
@@ -496,7 +496,7 @@ class MfilesController extends Controller
                     $prop_value = $this->get_property_value($headers,$document['objectID']."/".$objID."/latest/properties/".$prop_id);
                     if($prop_id == '1285'){
                     $short_start = explode('Bounded on the', $prop_value);
-                    $short_end = explode('to the point of beginning', $prop_value);
+                    $short_end = explode('point of beginning', $prop_value);
                     $prop_value = ($short_start[0] ." Bounded on the XXXX to the point of beginning".$short_end[1]);
                     }
     
@@ -778,8 +778,9 @@ class MfilesController extends Controller
             if($prop_value == null){
                  return response()->json(['error' => 'property value is empty'], 404);
             }
+           
             $short_start = explode('Bounded on the', $prop_value);
-            $short_end = explode('to the point of beginning', $prop_value);
+            $short_end = explode('point of beginning', $prop_value);
             $short_str = ($short_start[0] ." Bounded on the XXXX to the point of beginning".$short_end[1]);
  
             // $result[$prop_def['name']] = trim($short_str) ;
