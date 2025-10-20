@@ -41,3 +41,6 @@ Route::get('mfiles/document/search/list/document/{contract_id}',  [MfilesControl
 
 //custom link
 Route::get('mfiles/technical-description/{propertyValue}',  [MfilesController::class, 'get_technical_description']   )->name('technical description');
+
+Route::post('mfiles/storefront/upload',[MfilesController::class,'upload_storefront_file'])->name('storefront document uploader');
+Route::get('mfiles/storefront/view/{fileId}',[MfilesController::class,'view_storefront_document'])->name('storefront document uploader');

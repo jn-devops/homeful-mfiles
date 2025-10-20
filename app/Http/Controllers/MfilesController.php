@@ -7,6 +7,8 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request as GuzzleRequest;
 use GuzzleHttp\Psr7\Utils;
 use Illuminate\Support\Facades\Storage;
+use GuzzleHttp\Psr7\MultipartStream;
+use Carbon\Carbon;
 
 class MfilesController extends Controller
 {   
@@ -422,6 +424,81 @@ class MfilesController extends Controller
         // dd($responseBody);
         // return $res->getBody();
        
+    }
+
+    public function upload_storefront_file(Request $request)
+    {
+    
+    $get_token = $this->get_token($request);
+    $client = new Client();
+
+    $headers = [
+        'x-authentication' => $get_token['token'],
+        'Cookie' => $get_token['setCookie'],
+    ];
+    $objectId = env("MFILES_STOREFRONT_OBJECT_ID",723368);
+
+    $uploadFile = $request->file('uploadFile');
+    $fileName = $uploadFile->getClientOriginalName();
+    $objectURL = $this->baseURL() . "/REST/objects/0/{$objectId}/files";
+
+    try {
+        $multipart = [
+            [
+                'name'     => 'file',
+                'contents' => Utils::tryFopen($uploadFile->getPathname(), 'r'),
+                'filename' => Carbon::now()->timestamp."_".$fileName,
+            ],
+        ];
+        $request = new GuzzleRequest('POST', $objectURL, $headers);
+        $res = $client->sendAsync($request, ['multipart' => $multipart])->wait();
+
+        $responseBody = $res->getBody()->getContents();
+        $resBodyJson = json_decode($responseBody, true);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'File uploaded successfully',
+            'fileId' => $resBodyJson['AddedFiles'][0]['ID']
+        ], 200);
+
+    } catch (\Exception $e) {
+        $errorMessage = $e->getMessage();
+        if (method_exists($e, 'getResponse') && $e->getResponse()) {
+            $errorMessage = $e->getResponse()->getBody()->getContents();
+        }
+
+        return response()->json([
+            'error' => 'Upload failed',
+            'details' => $errorMessage
+        ], 500);
+    }
+    }
+    public function view_storefront_document(Request $request, $fileId){
+        $get_token = $this->get_token($request);
+        $objectId = env("MFILES_STOREFRONT_OBJECT_ID",723368);
+        $client = new Client();
+        $headers = [
+        'x-authentication' => $get_token['token'],
+        'Content-Type' => 'application/json',
+        'Cookie' => $get_token['setCookie']
+        ];
+        try{
+            // $objectURL =$this->baseURL()."/REST/objects/0/723368/files/".$fileId."/content.aspx?filePreview=true&format=pdf" ;
+            $objectURL =$this->baseURL()."/REST/objects/0/".$objectId."/files/".$fileId."/content.aspx?format=pdf" ;
+            $request = new GuzzleRequest('GET', $objectURL, $headers);
+            $res = $client->sendAsync($request)->wait();
+            $responseBody = $res->getBody()->getContents();
+
+        return response($responseBody, 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="document.pdf"'); // inline = view in 
+            // dd($responseBody);
+        } catch (\Exception $e) {
+        // dd($e->getResponse()->getBody()->getContents());
+        return response()->json(['error' => 'Document not found'], 500);
+         }
+        
     }
     public function get_document_property(Request $request, $ObjectID = null, $propertyID = null){
         $objectID = $objectID ?? $request->objectID;
