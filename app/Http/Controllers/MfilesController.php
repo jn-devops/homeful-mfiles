@@ -11,13 +11,13 @@ use GuzzleHttp\Psr7\MultipartStream;
 use Carbon\Carbon;
 
 class MfilesController extends Controller
-{   
+{
     private function baseURL(){
         return env("MFILES_BASEURL","https://raemulanlands.cloudvault.m-files.com");
     }
     public function get_datatype($value)
     {
-    $datatypes = [
+        $datatypes = [
             'Boolean' => 8,
             'Date' => 5,
             'FILETIME' => 12,
@@ -30,66 +30,66 @@ class MfilesController extends Controller
             'Text' => 1,
             'Time' => 6,
             'Timestamp' => 7,
-    ];
-    return $datatypes[$value] ?? null;
-    
+        ];
+        return $datatypes[$value] ?? null;
+
     }
     public function request_catcher(Request $request){
         dd($request);
     }
-    public function process_property($array){   
-            $datatypes = [
-                'Boolean' => 8,
-                'Date' => 5,
-                'FILETIME' => 12,
-                'Float' => 3,
-                'Integer' => 2,
-                'Integer64' => 11,
-                'Lookup' => 9,
-                'MultiLookup' => 10,
-                'MultiText' => 13,
-                'Text' => 1,
-                'Time' => 6,
-                'Timestamp' => 7,
-            ];
-            $datatype = $array['DataType'] ?? null;
+    public function process_property($array){
+        $datatypes = [
+            'Boolean' => 8,
+            'Date' => 5,
+            'FILETIME' => 12,
+            'Float' => 3,
+            'Integer' => 2,
+            'Integer64' => 11,
+            'Lookup' => 9,
+            'MultiLookup' => 10,
+            'MultiText' => 13,
+            'Text' => 1,
+            'Time' => 6,
+            'Timestamp' => 7,
+        ];
+        $datatype = $array['DataType'] ?? null;
 
-            switch ($array['DataType']) {
-                case 'MultiLookup':
-                    $property = [
-                        "PropertyDef" => $array['ID'],
-                        "TypedValue" => [
-                            "DataType" => $this->get_datatype($array['DataType']),
-                            "Lookups" => [
-                                "Item" => $array['ObjID'],
-                                "Version" => -1
-                            ]
+        switch ($array['DataType']) {
+            case 'MultiLookup':
+                $property = [
+                    "PropertyDef" => $array['ID'],
+                    "TypedValue" => [
+                        "DataType" => $this->get_datatype($array['DataType']),
+                        "Lookups" => [
+                            "Item" => $array['ObjID'],
+                            "Version" => -1
                         ]
-                    ];    
-                    break;
-                case 'Lookup':
-                    $property = [
-                        "PropertyDef" => $array['ID'],
-                        "TypedValue" => [
-                            "DataType" => $this->get_datatype($array['DataType']),
-                            "Lookup" => [
-                                "Item" => $array['ObjID'],
-                                "Version" => -1
-                            ]
+                    ]
+                ];
+                break;
+            case 'Lookup':
+                $property = [
+                    "PropertyDef" => $array['ID'],
+                    "TypedValue" => [
+                        "DataType" => $this->get_datatype($array['DataType']),
+                        "Lookup" => [
+                            "Item" => $array['ObjID'],
+                            "Version" => -1
                         ]
-                    ];   
-                    break;
-                default:
-                     $property = [
+                    ]
+                ];
+                break;
+            default:
+                $property = [
                     "PropertyDef" => $array['ID'],
                     "TypedValue" => [
                         "DataType" => $this->get_datatype($array['DataType']),
                         "Value" => $array['Value']
                     ]
-                    ];    
-                    break;
-            }
-      
+                ];
+                break;
+        }
+
         return $property;
 
     }
@@ -102,18 +102,18 @@ class MfilesController extends Controller
             'x-authentication' => $get_token['token'],
             'Content-Type' => 'application/json',
             'Cookie' => $get_token['setCookie']
-            ];        
+        ];
 
         // dd($response_content);
-        
+
         $client = new Client();
         try{
             $request = new GuzzleRequest('GET', $sessionURL, $headers);
             $response = $client->sendAsync($request)->wait();
             $response_content = json_decode($response->getBody()->getContents());
         } catch (\Exception $e) {
-        return response()->json(['error' => 'Error in getting user information: ' . $e->getMessage()], 500);
-         }
+            return response()->json(['error' => 'Error in getting user information: ' . $e->getMessage()], 500);
+        }
         return $response_content;
     }
     public function get_token(Request $request)
@@ -144,14 +144,14 @@ class MfilesController extends Controller
                     $setCookies = $setCookies == NULL ? $array[0] : $setCookies.";".$array[0];
                 }
             }
-            $response_message = json_decode($response->getBody()->getContents()); 
+            $response_message = json_decode($response->getBody()->getContents());
             return ["token"=>$response_message->Value, "setCookie" => $setCookies];
 
         } catch (\Exception $e) {
             return response()->json(['error' => 'Error in generating Token: ' . $e->getMessage()], 500);
         }
     }
-    
+
     public function create_object(Request $request){
         $get_token = $this->get_token($request);
         $properties = $request->Properties;
@@ -159,12 +159,12 @@ class MfilesController extends Controller
         //set document properties
         if($properties)
         {
-            foreach ($properties as $property) 
-            {   
-                $currProperty = $this->process_property($property);                
+            foreach ($properties as $property)
+            {
+                $currProperty = $this->process_property($property);
                 $setProperties[] = $currProperty;
 
-                
+
             }
         }
         //set if document accept multiple files
@@ -174,7 +174,7 @@ class MfilesController extends Controller
                 "DataType" => 8,
                 "Value" => false
             ]
-        ]; 
+        ];
         //set document class
         $setProperties[] = [
             "PropertyDef" => 100,
@@ -193,9 +193,9 @@ class MfilesController extends Controller
 
         $client = new Client();
         $headers = [
-        'x-authentication' => $get_token['token'],
-        'Content-Type' => 'application/json',
-        'Cookie' => $get_token['setCookie']
+            'x-authentication' => $get_token['token'],
+            'Content-Type' => 'application/json',
+            'Cookie' => $get_token['setCookie']
         ];
 
         $client = new Client();
@@ -206,12 +206,12 @@ class MfilesController extends Controller
         $res = $client->sendAsync($request)->wait();
         $responseBody = json_decode($res->getBody());//->getContents();
         // dd($responseJSON);
-        // return $responseJSON->DisplayID;     
-        // return $res->getBody();        
+        // return $responseJSON->DisplayID;
+        // return $res->getBody();
         return $responseBody;
 
     }
-    
+
     public function upload_file_url(Request $request){
         //Set document properties
         dd($request->body);
@@ -220,16 +220,16 @@ class MfilesController extends Controller
         //     $filePath = storage_path($request->filePath);
         // }
         // else
-        // { 
-        // return "File not found in ".storage_path($request->filePath);    
+        // {
+        // return "File not found in ".storage_path($request->filePath);
         // }
         $filePath = $request->filePath;
         if (file_exists($filePath)) {
             $filePath = $filePath;
         }
         else
-        { 
-        return "File not found in ".$request->filePath;    
+        {
+            return "File not found in ".$request->filePath;
         }
         $classId = (int)$request->classID;
         $objId = $request->objectId;
@@ -241,12 +241,12 @@ class MfilesController extends Controller
         $fileName = $request->filename;
         $referenceCode = $request->referenceCode;
         $ext = $request->ext;
-        
+
         $headers = [
             'x-authentication' => $get_token['token'],
             'Content-Type' => 'application/json',
             'Cookie' => $get_token['setCookie']
-            ];
+        ];
         $request = new GuzzleRequest('POST', $objectURL, $headers, $bodyFile);
         $response = $client->sendAsync($request)->wait();
         $response_content = json_decode($response->getBody()->getContents());
@@ -257,15 +257,15 @@ class MfilesController extends Controller
             "Extension" => $ext
         ];
         // dd($upload_response);
-        //create object 
+        //create object
         $setProperties;
         // dd($properties);
         if($properties)
         {
-            foreach ($properties as $property) 
-            {   
-                $currProperty = $this->process_property($property);                
-                $setProperties[] = $currProperty;        
+            foreach ($properties as $property)
+            {
+                $currProperty = $this->process_property($property);
+                $setProperties[] = $currProperty;
             }
         }
         // $setProperties[] =  [
@@ -289,7 +289,7 @@ class MfilesController extends Controller
                 "DataType" => 8,
                 "Value" => false
             ]
-        ]; 
+        ];
 
         //Set document class
         $setProperties[] = [
@@ -308,17 +308,17 @@ class MfilesController extends Controller
             "PropertyValues" => $setProperties,
             "Files" => $upload_response ];
 
-     
+
         // dd($bodyJson);
         $client = new Client();
         $headers = [
-        'x-authentication' => $get_token['token'],
-        'Content-Type' => 'application/json',
-        'Cookie' => $get_token['setCookie']
+            'x-authentication' => $get_token['token'],
+            'Content-Type' => 'application/json',
+            'Cookie' => $get_token['setCookie']
         ];
         // dd($headers);
 
- 
+
         try{
             $objectURL =$this->baseURL()."/REST/objects/".$objId."?checkIn=true" ;
             $request = new GuzzleRequest('POST', $objectURL, $headers, $body);
@@ -326,11 +326,11 @@ class MfilesController extends Controller
             $responseBody = $res->getBody()->getContents();
             dd($responseBody);
         } catch (\Exception $e) {
-        dd($e->getResponse()->getBody()->getContents());
-        return response()->json(['error' => 'Error in uploading file: ' . $e->getMessage()], 500);
-         }
-        return $res->getBody();    
-       
+            dd($e->getResponse()->getBody()->getContents());
+            return response()->json(['error' => 'Error in uploading file: ' . $e->getMessage()], 500);
+        }
+        return $res->getBody();
+
     }
     public function upload_file(Request $request){
         $get_token = $this->get_token($request);
@@ -346,12 +346,12 @@ class MfilesController extends Controller
         // dd($bodyFile);
 
 
-        
+
         $headers = [
             'x-authentication' => $get_token['token'],
             'Content-Type' => 'application/json',
             'Cookie' => $get_token['setCookie']
-            ];
+        ];
         $request = new GuzzleRequest('POST', $objectURL, $headers, $bodyFile);
         $response = $client->sendAsync($request)->wait();
         $response_content = json_decode($response->getBody()->getContents());
@@ -363,7 +363,7 @@ class MfilesController extends Controller
             "Extension" => $ext
         ];
 
-        //create object 
+        //create object
         //Set document properties
         $setProperties[] =  [
             "PropertyDef" => 1157,
@@ -379,7 +379,7 @@ class MfilesController extends Controller
                 "DataType" => 8,
                 "Value" => false
             ]
-        ]; 
+        ];
 
         //Set document class
         $setProperties[] = [
@@ -401,13 +401,13 @@ class MfilesController extends Controller
         // dd($get_token);
         $client = new Client();
         $headers = [
-        'x-authentication' => $get_token['token'],
-        'Content-Type' => 'application/json',
-        'Cookie' => $get_token['setCookie']
+            'x-authentication' => $get_token['token'],
+            'Content-Type' => 'application/json',
+            'Cookie' => $get_token['setCookie']
         ];
         // dd($headers);
 
- 
+
         try{
             $objectURL =$this->baseURL()."/REST/objects/104?checkIn=true" ;
             $request = new GuzzleRequest('POST', $objectURL, $headers, $body);
@@ -415,73 +415,73 @@ class MfilesController extends Controller
             $responseBody = $res->getBody()->getContents();
             dd($responseBody);
         } catch (\Exception $e) {
-        // dd($e->getResponse()->getBody()->getContents());
-        return response()->json(['error' => 'Error in generating Token: ' . $e->getMessage()], 500);
-         }
-        return $res->getBody();    
+            // dd($e->getResponse()->getBody()->getContents());
+            return response()->json(['error' => 'Error in generating Token: ' . $e->getMessage()], 500);
+        }
+        return $res->getBody();
         // return $upload_response;
         // {{MFWSUrl}}/objects/{{ObjectType}}/{{ObjectID}}/{{ObjectVersion}}/properties?_method=PUT
         // dd($responseBody);
         // return $res->getBody();
-       
+
     }
 
     public function upload_storefront_file(Request $request)
     {
-    
-    $get_token = $this->get_token($request);
-    $client = new Client();
 
-    $headers = [
-        'x-authentication' => $get_token['token'],
-        'Cookie' => $get_token['setCookie'],
-    ];
-    $objectId = env("MFILES_STOREFRONT_OBJECT_ID",723368);
+        $get_token = $this->get_token($request);
+        $client = new Client();
 
-    $uploadFile = $request->file('uploadFile');
-    $fileName = $uploadFile->getClientOriginalName();
-    $objectURL = $this->baseURL() . "/REST/objects/0/{$objectId}/files";
-
-    try {
-        $multipart = [
-            [
-                'name'     => 'file',
-                'contents' => Utils::tryFopen($uploadFile->getPathname(), 'r'),
-                'filename' => Carbon::now()->timestamp."_".$fileName,
-            ],
+        $headers = [
+            'x-authentication' => $get_token['token'],
+            'Cookie' => $get_token['setCookie'],
         ];
-        $request = new GuzzleRequest('POST', $objectURL, $headers);
-        $res = $client->sendAsync($request, ['multipart' => $multipart])->wait();
+        $objectId = env("MFILES_STOREFRONT_OBJECT_ID",723368);
 
-        $responseBody = $res->getBody()->getContents();
-        $resBodyJson = json_decode($responseBody, true);
+        $uploadFile = $request->file('uploadFile');
+        $fileName = $uploadFile->getClientOriginalName();
+        $objectURL = $this->baseURL() . "/REST/objects/0/{$objectId}/files";
 
-        return response()->json([
-            'success' => true,
-            'message' => 'File uploaded successfully',
-            'fileId' => $resBodyJson['AddedFiles'][0]['ID']
-        ], 200);
+        try {
+            $multipart = [
+                [
+                    'name'     => 'file',
+                    'contents' => Utils::tryFopen($uploadFile->getPathname(), 'r'),
+                    'filename' => Carbon::now()->timestamp."_".$fileName,
+                ],
+            ];
+            $request = new GuzzleRequest('POST', $objectURL, $headers);
+            $res = $client->sendAsync($request, ['multipart' => $multipart])->wait();
 
-    } catch (\Exception $e) {
-        $errorMessage = $e->getMessage();
-        if (method_exists($e, 'getResponse') && $e->getResponse()) {
-            $errorMessage = $e->getResponse()->getBody()->getContents();
+            $responseBody = $res->getBody()->getContents();
+            $resBodyJson = json_decode($responseBody, true);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'File uploaded successfully',
+                'fileId' => $resBodyJson['AddedFiles'][0]['ID']
+            ], 200);
+
+        } catch (\Exception $e) {
+            $errorMessage = $e->getMessage();
+            if (method_exists($e, 'getResponse') && $e->getResponse()) {
+                $errorMessage = $e->getResponse()->getBody()->getContents();
+            }
+
+            return response()->json([
+                'error' => 'Upload failed',
+                'details' => $errorMessage
+            ], 500);
         }
-
-        return response()->json([
-            'error' => 'Upload failed',
-            'details' => $errorMessage
-        ], 500);
-    }
     }
     public function view_storefront_document(Request $request, $fileId){
         $get_token = $this->get_token($request);
         $objectId = env("MFILES_STOREFRONT_OBJECT_ID",723368);
         $client = new Client();
         $headers = [
-        'x-authentication' => $get_token['token'],
-        'Content-Type' => 'application/json',
-        'Cookie' => $get_token['setCookie']
+            'x-authentication' => $get_token['token'],
+            'Content-Type' => 'application/json',
+            'Cookie' => $get_token['setCookie']
         ];
         try{
             // $objectURL =$this->baseURL()."/REST/objects/0/723368/files/".$fileId."/content.aspx?filePreview=true&format=pdf" ;
@@ -490,15 +490,15 @@ class MfilesController extends Controller
             $res = $client->sendAsync($request)->wait();
             $responseBody = $res->getBody()->getContents();
 
-        return response($responseBody, 200)
-            ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'inline; filename="document.pdf"'); // inline = view in 
+            return response($responseBody, 200)
+                ->header('Content-Type', 'application/pdf')
+                ->header('Content-Disposition', 'inline; filename="document.pdf"'); // inline = view in
             // dd($responseBody);
         } catch (\Exception $e) {
-        // dd($e->getResponse()->getBody()->getContents());
-        return response()->json(['error' => 'Document not found'], 500);
-         }
-        
+            // dd($e->getResponse()->getBody()->getContents());
+            return response()->json(['error' => 'Document not found'], 500);
+        }
+
     }
     public function get_document_property(Request $request, $ObjectID = null, $propertyID = null){
         $objectID = $objectID ?? $request->objectID;
@@ -508,9 +508,9 @@ class MfilesController extends Controller
         $objectURL =$this->baseURL()."/REST/objects/".$objectID."?p".$propertyID."=".$request->name ;
         $client = new Client();
         $headers = [
-        'x-authentication' => $get_token['token'],
-        'Content-Type' => 'application/json',
-        'Cookie' => $get_token['setCookie']
+            'x-authentication' => $get_token['token'],
+            'Content-Type' => 'application/json',
+            'Cookie' => $get_token['setCookie']
         ];
         // dd($headers);
         try{
@@ -522,23 +522,23 @@ class MfilesController extends Controller
                 return response()->json(['error' => 'Object not found'], 404);
             }
             $objID = $res->Items[0]->DisplayID;
-            foreach ($request->property_ids as $prop_id){ 
+            foreach ($request->property_ids as $prop_id){
                 $prop_def = $this->get_property_definition($headers,$prop_id);
                 $prop_value = $this->get_property_value($headers,$objectID."/".$objID."/latest/properties/".$prop_id);
                 if($prop_id == 1285){
-                $short_start = explode('Bounded on the', $prop_value);
-                $short_end = explode('point of beginning', $prop_value);
-                $prop_value = ($short_start[0] ." Bounded on the XXXX to the point of beginning".$short_end[1]);
+                    $short_start = explode('Bounded on the', $prop_value);
+                    $short_end = explode('point of beginning', $prop_value);
+                    $prop_value = ($short_start[0] ." Bounded on the XXXX to the point of beginning".$short_end[1]);
                 }
 
                 $result[$prop_def['name']] = $prop_value ;
-               
+
             }
             // return $result;
-             return response()->json($result);
+            return response()->json($result);
         } catch (\Exception $e) {
-        return response()->json(['error' => 'Error in searching object: ' . $e->getMessage()], 404);
-    }
+            return response()->json(['error' => 'Error in searching object: ' . $e->getMessage()], 404);
+        }
     }
     public function get_document_property_multi(Request $request, $ObjectID = null, $propertyID = null){
         $objectID = $objectID ?? $request->objectID;
@@ -547,60 +547,60 @@ class MfilesController extends Controller
         $get_token = $this->get_token($request);
         $client = new Client();
         $headers = [
-        'x-authentication' => $get_token['token'],
-        'Content-Type' => 'application/json',
-        'Cookie' => $get_token['setCookie']
+            'x-authentication' => $get_token['token'],
+            'Content-Type' => 'application/json',
+            'Cookie' => $get_token['setCookie']
         ];
         $results=[];
         foreach($request->Documents as $document){
-                $result = null;
-                $objectURL =$this->baseURL()."/REST/objects/".$document['objectID']."?p".$document['propertyID']."=".$document['name'] ;
-                $requestObj = new GuzzleRequest('GET', $objectURL, $headers);
-                $res = $client->sendAsync($requestObj)->wait();
-                $responseBody = $res->getBody()->getContents();
-                $res = json_decode($responseBody);
-                if(count($res->Items) == 0){
-                    return response()->json(['error' => 'Object not found'], 404);
+            $result = null;
+            $objectURL =$this->baseURL()."/REST/objects/".$document['objectID']."?p".$document['propertyID']."=".$document['name'] ;
+            $requestObj = new GuzzleRequest('GET', $objectURL, $headers);
+            $res = $client->sendAsync($requestObj)->wait();
+            $responseBody = $res->getBody()->getContents();
+            $res = json_decode($responseBody);
+            if(count($res->Items) == 0){
+                return response()->json(['error' => 'Object not found'], 404);
+            }
+            $objID = $res->Items[0]->DisplayID;
+            foreach ($document['property_ids'] as $index =>$prop_id){
+                if(isset($document['mask_field'])&& $document['mask_field'][$index]){
+                    $prop_def['name'] = $document['mask_field'][$index];
                 }
-                $objID = $res->Items[0]->DisplayID;
-                foreach ($document['property_ids'] as $index =>$prop_id){ 
-                    if(isset($document['mask_field'])&& $document['mask_field'][$index]){
-                        $prop_def['name'] = $document['mask_field'][$index];
-                    }
-                    else{
-                        $prop_def = $this->get_property_definition($headers,$prop_id);
-                    }
-                    $prop_value = $this->get_property_value($headers,$document['objectID']."/".$objID."/latest/properties/".$prop_id);
-                    if($prop_id == '1285'){
+                else{
+                    $prop_def = $this->get_property_definition($headers,$prop_id);
+                }
+                $prop_value = $this->get_property_value($headers,$document['objectID']."/".$objID."/latest/properties/".$prop_id);
+                if($prop_id == '1285'){
                     $short_start = explode('Bounded on the', $prop_value);
                     $short_end = explode('point of beginning', $prop_value);
                     $prop_value = ($short_start[0] ." Bounded on the XXXX to the point of beginning".$short_end[1]);
-                    }
-    
-                    $result[$prop_def['name']] = $prop_value ;
-                   
                 }
-                // dd($result);
-                $json_name = $document['objectID']===119?"inventory":"project";
-                $results[$document['json_name']?$document['json_name']:$json_name] = $result;
-                
-                //  return response()->json($result);
-                // $results[]= response()->json($result);
 
-        // dd($headers);
-     
+                $result[$prop_def['name']] = $prop_value ;
+
+            }
+            // dd($result);
+            $json_name = $document['objectID']===119?"inventory":"project";
+            $results[$document['json_name']?$document['json_name']:$json_name] = $result;
+
+            //  return response()->json($result);
+            // $results[]= response()->json($result);
+
+            // dd($headers);
+
+        }
+        return $results;
     }
-    return $results;
-    }
-     public function get_document_property_single(Request $request, $ObjectID = null, $propertyID = null, $propertyValue = null, $getPropertyID = null){
+    public function get_document_property_single(Request $request, $ObjectID = null, $propertyID = null, $propertyValue = null, $getPropertyID = null){
 
         $get_token = $this->get_token($request);
         $objectURL =$this->baseURL()."/REST/objects/".$ObjectID."?p".$propertyID."=".$propertyValue ;
         $client = new Client();
         $headers = [
-        'x-authentication' => $get_token['token'],
-        'Content-Type' => 'application/json',
-        'Cookie' => $get_token['setCookie']
+            'x-authentication' => $get_token['token'],
+            'Content-Type' => 'application/json',
+            'Cookie' => $get_token['setCookie']
         ];
         // dd($headers);
         try{
@@ -615,70 +615,70 @@ class MfilesController extends Controller
             $prop_def = $this->get_property_definition($headers,$getPropertyID);
             $prop_value = $this->get_property_value($headers,$ObjectID."/".$objID."/latest/properties/".$getPropertyID);
             if($prop_value == null){
-                 return response()->json(['error' => 'property value is empty'], 404);
+                return response()->json(['error' => 'property value is empty'], 404);
             }
 
             $result[$prop_def['name']] = $prop_value ;
             // return $result;
-             return response()->json($prop_value);
+            return response()->json($prop_value);
         } catch (\Exception $e) {
-        return response()->json(['error' => 'Error in searching object: ' . $e->getMessage()], 404);
+            return response()->json(['error' => 'Error in searching object: ' . $e->getMessage()], 404);
+        }
     }
-    }
-    
+
     public function update_inventory_status(Request $request, $property_unit = null, $status = null){
         $objectID = 119; //unit inventory
         $propertyID = 1109; //os status
         $get_token = $this->get_token($request);
-            $objectURL =$this->baseURL()."/REST/objects/".$objectID."?p1105=".$property_unit ;
-            $client = new Client();
-            $headers = [
+        $objectURL =$this->baseURL()."/REST/objects/".$objectID."?p1105=".$property_unit ;
+        $client = new Client();
+        $headers = [
             'x-authentication' => $get_token['token'],
             'Content-Type' => 'application/json',
             'Cookie' => $get_token['setCookie']
-            ];
-            try{
-                $requestObj = new GuzzleRequest('GET', $objectURL, $headers);
-                $res = $client->sendAsync($requestObj)->wait();
-                $responseBody = $res->getBody()->getContents();
-                $res = json_decode($responseBody);
-                if(count($res->Items) == 0){
+        ];
+        try{
+            $requestObj = new GuzzleRequest('GET', $objectURL, $headers);
+            $res = $client->sendAsync($requestObj)->wait();
+            $responseBody = $res->getBody()->getContents();
+            $res = json_decode($responseBody);
+            if(count($res->Items) == 0){
                 return response()->json(['error' => 'Object not found'], 404)->setStatusCode(404);
-                }
-                $objID = $res->Items[0]->DisplayID;
+            }
+            $objID = $res->Items[0]->DisplayID;
 
-                $setProperties[] = [
+            $setProperties[] = [
 
-                    "PropertyDef" => $propertyID,
-                    "TypedValue" => [
-                        "DataType" => 10,
-                        "Lookups"=> [
-                            [
-                                "Item" => $status,
-                                "Version" => -1
-                            ]
+                "PropertyDef" => $propertyID,
+                "TypedValue" => [
+                    "DataType" => 10,
+                    "Lookups"=> [
+                        [
+                            "Item" => $status,
+                            "Version" => -1
                         ]
                     ]
-                ];
-                $body = json_encode($setProperties);
-                 // dd($body);
-                $objectURL =$this->baseURL()."/REST/objects/".$objectID."/".$objID."/latest/properties";
-                // dd($objectURL);
-                $request = new GuzzleRequest('POST', $objectURL, $headers, $body);
-                $res = $client->sendAsync($request)->wait();
-                $responseBody = $res->getBody()->getContents();
-                return $responseBody;
+                ]
+            ];
+            $body = json_encode($setProperties);
+            // dd($body);
+            $objectURL =$this->baseURL()."/REST/objects/".$objectID."/".$objID."/latest/properties";
+            // dd($objectURL);
+            $request = new GuzzleRequest('POST', $objectURL, $headers, $body);
+            $res = $client->sendAsync($request)->wait();
+            $responseBody = $res->getBody()->getContents();
+            return $responseBody;
 
-            } catch (\Exception $e) {
+        } catch (\Exception $e) {
             return response()->json(['error' => 'Error in searching object: ' . $e->getMessage()], 500);
         }
         $get_token = $this->get_token($request);
         $objectURL =$this->baseURL()."/REST/objects/".$objectID."?p".$propertyID."=".$request->name ;
         $client = new Client();
         $headers = [
-        'x-authentication' => $get_token['token'],
-        'Content-Type' => 'application/json',
-        'Cookie' => $get_token['setCookie']
+            'x-authentication' => $get_token['token'],
+            'Content-Type' => 'application/json',
+            'Cookie' => $get_token['setCookie']
         ];
         // dd($headers);
         try{
@@ -687,25 +687,25 @@ class MfilesController extends Controller
             $responseBody = $res->getBody()->getContents();
             $res = json_decode($responseBody);
             $objID = $res->Items[0]->DisplayID;
-            foreach ($request->property_ids as $prop_id){ 
+            foreach ($request->property_ids as $prop_id){
                 $prop_def = $this->get_property_definition($headers,$prop_id);
                 $prop_value = $this->get_property_value($headers,$objectID."/".$objID."/latest/properties/".$prop_id);
                 $result[$prop_def['name']] = $prop_value ;
-               
+
             }
             return $result;
         } catch (\Exception $e) {
-        return response()->json(['error' => 'Error in searching object: ' . $e->getMessage()], 500);
-    }
+            return response()->json(['error' => 'Error in searching object: ' . $e->getMessage()], 500);
+        }
     }
     public function get_value_list(Request $request, $ID){
 
         $get_token = $this->get_token($request);
         $client = new Client();
         $headers = [
-        'x-authentication' => $get_token['token'],
-        'Content-Type' => 'application/json',
-        'Cookie' => $get_token['setCookie']
+            'x-authentication' => $get_token['token'],
+            'Content-Type' => 'application/json',
+            'Cookie' => $get_token['setCookie']
         ];
 
         $client = new Client();
@@ -724,8 +724,8 @@ class MfilesController extends Controller
         //set document properties
         if($properties)
         {
-            foreach ($properties as $property) 
-            {   
+            foreach ($properties as $property)
+            {
                 $currProperty = [
                     "PropertyDef" => $property['ID'],
                     "TypedValue" => [
@@ -736,7 +736,7 @@ class MfilesController extends Controller
                 $setProperties[] = $currProperty;
             }
         }
-        
+
         //set true if document accept multiple files
         $setProperties[] = [
             "PropertyDef" => 22,
@@ -744,7 +744,7 @@ class MfilesController extends Controller
                 "DataType" => 8,
                 "Value" => false
             ]
-        ]; 
+        ];
 
 
         //set document class
@@ -765,9 +765,9 @@ class MfilesController extends Controller
 
         $client = new Client();
         $headers = [
-        'x-authentication' => $get_token['token'],
-        'Content-Type' => 'application/json',
-        'Cookie' => $get_token['setCookie']
+            'x-authentication' => $get_token['token'],
+            'Content-Type' => 'application/json',
+            'Cookie' => $get_token['setCookie']
         ];
 
         $client = new Client();
@@ -786,9 +786,9 @@ class MfilesController extends Controller
         $objectURL =$this->baseURL()."/REST/objects/".$request->objectID."?p".$request->propertyID."=".$request->name ;
         $client = new Client();
         $headers = [
-        'x-authentication' => $get_token['token'],
-        'Content-Type' => 'application/json',
-        'Cookie' => $get_token['setCookie']
+            'x-authentication' => $get_token['token'],
+            'Content-Type' => 'application/json',
+            'Cookie' => $get_token['setCookie']
         ];
         try{
             $requestObj = new GuzzleRequest('GET', $objectURL, $headers);
@@ -802,8 +802,8 @@ class MfilesController extends Controller
             $responseBodyProp = json_decode($resProp->getBody()->getContents());
             return $responseBodyProp;
         } catch (\Exception $e) {
-        return response()->json(['error' => 'Error in searching object: ' . $e->getMessage()], 500);
-    }
+            return response()->json(['error' => 'Error in searching object: ' . $e->getMessage()], 500);
+        }
     }
     public function get_property_definition($headers,$propId){
         $client = new Client();
@@ -813,22 +813,22 @@ class MfilesController extends Controller
             $resProp = $client->sendAsync($requestProp)->wait();
             $responseBodyProp = json_decode($resProp->getBody()->getContents());
             return ["dataType" => $responseBodyProp->DataType , "name" =>$responseBodyProp->Name];
-           
+
         } catch (\Exception $e) {
-        return response()->json(['error' => 'Error in getting property name: ' . $e->getMessage()], 500);
+            return response()->json(['error' => 'Error in getting property name: ' . $e->getMessage()], 500);
         }
     }
     public function get_property_value($headers,$paramProperty)
     {
         $client = new Client();
         try{
-        $objPropertyURL =$this->baseURL()."/REST/objects/".$paramProperty;
-        $requestProp = new GuzzleRequest('GET', $objPropertyURL, $headers);
-        $resProp = $client->sendAsync($requestProp)->wait();
-        $responseBodyProp = json_decode($resProp->getBody()->getContents());
-        return $responseBodyProp->TypedValue->DisplayValue;       
+            $objPropertyURL =$this->baseURL()."/REST/objects/".$paramProperty;
+            $requestProp = new GuzzleRequest('GET', $objPropertyURL, $headers);
+            $resProp = $client->sendAsync($requestProp)->wait();
+            $responseBodyProp = json_decode($resProp->getBody()->getContents());
+            return $responseBodyProp->TypedValue->DisplayValue;
         } catch (\Exception $e) {
-        return response()->json(['error' => 'Error in getting property value: ' . $e->getMessage()], 500);
+            return response()->json(['error' => 'Error in getting property value: ' . $e->getMessage()], 500);
         }
     }
     public function get_technical_description(Request $request, $propertyValue = null){
@@ -836,9 +836,9 @@ class MfilesController extends Controller
         $objectURL =$this->baseURL()."/REST/objects/119?p1105=".$propertyValue ;
         $client = new Client();
         $headers = [
-        'x-authentication' => $get_token['token'],
-        'Content-Type' => 'application/json',
-        'Cookie' => $get_token['setCookie']
+            'x-authentication' => $get_token['token'],
+            'Content-Type' => 'application/json',
+            'Cookie' => $get_token['setCookie']
         ];
         // dd($headers);
         try{
@@ -853,18 +853,18 @@ class MfilesController extends Controller
             $prop_def = $this->get_property_definition($headers,'1285');
             $prop_value = $this->get_property_value($headers,"119/".$objID."/latest/properties/1285");
             if($prop_value == null){
-                 return response()->json(['error' => 'property value is empty'], 404);
+                return response()->json(['error' => 'property value is empty'], 404);
             }
-           
+
             $short_start = explode('Bounded on the', $prop_value);
             $short_end = explode('point of beginning', $prop_value);
             $short_str = ($short_start[0] ." Bounded on the XXXX to the point of beginning".$short_end[1]);
- 
+
             // $result[$prop_def['name']] = trim($short_str) ;
             // return $result;
-             return response()->json(trim($short_str));
+            return response()->json(trim($short_str));
         } catch (\Exception $e) {
-        return response()->json(['error' => 'Error in searching object: ' . $e->getMessage()], 404);
-    }
+            return response()->json(['error' => 'Error in searching object: ' . $e->getMessage()], 404);
+        }
     }
 }
