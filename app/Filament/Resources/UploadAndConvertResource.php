@@ -35,6 +35,9 @@ class UploadAndConvertResource extends Resource
                 Forms\Components\TextInput::make('user_name')
                     ->required()
                     ->maxLength(255),
+                Forms\Components\TextInput::make('object_id')
+                    ->required()
+                    ->maxLength(255),
                 Forms\Components\TextInput::make('data')
                     ->required(),
                 Forms\Components\TextInput::make('file_name')
@@ -54,6 +57,7 @@ class UploadAndConvertResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('request_from_ip')
                     ->searchable(),
@@ -62,6 +66,8 @@ class UploadAndConvertResource extends Resource
                 Tables\Columns\TextColumn::make('user_id')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('user_name')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('object_id')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('file_name')
                     ->searchable(),

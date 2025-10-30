@@ -12,11 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('upload_and_converts', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('request_from_ip');
             $table->string('request_from_website');
             $table->string('user_id');
             $table->string('user_name');
+            $table->string('object_id');
             $table->jsonb('data');
             $table->string('file_name');
             $table->string('link');
