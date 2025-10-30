@@ -45,5 +45,9 @@ Route::get('mfiles/technical-description/{propertyValue}',  [MfilesController::c
 Route::post('mfiles/storefront/upload',[MfilesController::class,'upload_storefront_file'])->name('mfiles.storefront.upload');
 Route::get('mfiles/storefront/view/{fileId}',[MfilesController::class,'view_storefront_document'])->name('mfiles.storefront.view');
 
-Route::post('mfiles/storefront/convert',[\App\Http\Controllers\DocumentController::class,'upload_and_view_storefront_file'])->name('mfiles.storefront.convert');
-Route::get('mfiles/storefront/{id}/view/{filename}',[\App\Http\Controllers\DocumentController::class,'view'])->name('documents.storefront.view');
+Route::post('mfiles/storefront/convert',[\App\Http\Controllers\DocumentController::class,'upload_and_view_storefront_file'])
+    ->middleware('auth:sanctum')
+    ->name('mfiles.storefront.convert');
+Route::get('mfiles/storefront/{id}/view/{filename}',[\App\Http\Controllers\DocumentController::class,'view'])
+    ->middleware('auth:sanctum')
+    ->name('documents.storefront.view');
