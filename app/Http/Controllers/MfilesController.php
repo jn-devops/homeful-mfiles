@@ -484,15 +484,15 @@ class MfilesController extends Controller
         'Cookie' => $get_token['setCookie']
         ];
         try{
-            // $objectURL =$this->baseURL()."/REST/objects/0/723368/files/".$fileId."/content.aspx?filePreview=true&format=pdf" ;
             $objectURL =$this->baseURL()."/REST/objects/0/".$objectId."/files/".$fileId."/content.aspx?format=pdf" ;
             $request = new GuzzleRequest('GET', $objectURL, $headers);
             $res = $client->sendAsync($request)->wait();
             $responseBody = $res->getBody()->getContents();
+            
 
         return response($responseBody, 200)
             ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'inline; filename="document.pdf"'); // inline = view in 
+            ->header('Content-Disposition', 'inline; filename="document.pdf"');
             // dd($responseBody);
         } catch (\Exception $e) {
         // dd($e->getResponse()->getBody()->getContents());
@@ -500,6 +500,50 @@ class MfilesController extends Controller
          }
         
     }
+    public function view_storefront_video(Request $request, $fileId)
+    {
+        $get_token = $this->get_token($request);
+        $objectId = env("MFILES_STOREFRONT_OBJECT_ID", 723368);
+        $client = new Client();
+
+        $headers = [
+            'x-authentication' => $get_token['token'],
+            'Content-Type' => 'application/json',
+            'Cookie' => $get_token['setCookie']
+        ];
+
+        try {
+            $objectURL = $this->baseURL() . "/REST/objects/0/{$objectId}/files/{$fileId}/content.aspx";
+            $rangeHeader = $request->header('Range', 'bytes=0-');
+
+            $response = $client->get($objectURL, [
+                'headers' => array_merge($headers, [
+                    'Range' => $rangeHeader,
+                ]),
+                'stream' => true,
+            ]);
+
+            $statusCode = $response->getStatusCode();
+            $body = $response->getBody();
+
+            return response()->stream(function () use ($body) {
+                while (!$body->eof()) {
+                    echo $body->read(1024 * 8); 
+                    ob_flush();
+                    flush();
+                }
+            }, $statusCode, [
+                'Content-Type' => 'video/mp4',
+                'Content-Disposition' => 'inline; filename="video.mp4"',
+                'Accept-Ranges' => 'bytes',
+                'Cache-Control' => 'no-cache',
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Video not found or cannot be streamed'], 500);
+        }
+    }
+
     public function get_document_property(Request $request, $ObjectID = null, $propertyID = null){
         $objectID = $objectID ?? $request->objectID;
         $propertyID = $propertyID ?? $request->propertyID;
